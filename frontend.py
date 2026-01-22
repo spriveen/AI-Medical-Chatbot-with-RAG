@@ -1,4 +1,7 @@
 import streamlit as st
+import requests
+
+BACKEND_URL = "http://localhost:8000/ask"
 
 # Step 1: Setup Streamlit
 st.set_page_config(page_title="AI Mental Health Therapist", layout="wide")
@@ -12,21 +15,27 @@ if "chat_history" not in st.session_state:
 user_input = st.chat_input("What is on your mind today?")
 
 if user_input:
-    # Append user message
     st.session_state.chat_history.append({
         "role": "user",
         "content": user_input
     })
 
-    # Dummy AI response
-    fixed_dummy_response = (
-        "I'm here for you. It's okay to feel this way. "
-        "Would you like to talk more about what' s going on?"
-    )
+    try:
+        fixed_dummy_response_from_backend = requests.post(
+            BACKEND_URL,
+            json={"message": user_input}
+        )
+
+        bot_reply = fixed_dummy_response_from_backend.json().get(
+            "response", "No response from backend"
+        )
+
+    except Exception as e:
+        bot_reply = "Backend not running"
 
     st.session_state.chat_history.append({
         "role": "assistant",
-        "content": fixed_dummy_response
+        "content": bot_reply
     })
 
 # Step 3: Display chat history
